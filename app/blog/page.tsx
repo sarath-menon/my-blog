@@ -18,7 +18,7 @@ export default async function BlogPage() {
   const posts = filenames.map((filename: string) => {
     const filePath = path.join(contentDirectory, filename);
     const { data, content } = matter.read(filePath);
-    return { ...data, content, filePath: filePath };
+    return { ...data, content, fileName: filename };
   }).filter((post: { published: boolean }) => {
     return post.published;
   })
@@ -49,7 +49,7 @@ export default async function BlogPage() {
               className="group relative flex flex-col space-y-2"
             >
         
-              <Link href={"/selv"}>
+              <Link href={"/blog/" + post.fileName}>
                 <span className="text-2xl font-extrabold">{post.title}</span>
               </Link>
               

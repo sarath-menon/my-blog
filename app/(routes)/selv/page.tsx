@@ -7,8 +7,6 @@ export default async function BlogPage() {
 
   const mdxSource = matter.read(process.cwd() +'/app/content/test.mdx');
 
-  console.log("selv mdxSource.excerpt", mdxSource.data);
-
   return <div className="prose dark:prose-invert"><MDXRemote source={mdxSource.content} /></div>
 }
 
