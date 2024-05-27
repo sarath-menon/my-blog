@@ -31,7 +31,7 @@ export default async function BlogPage() {
             Blog
           </h1>
           <p className="text-xl text-muted-foreground">
-            A blog built using Contentlayer. Posts are written in MDX.
+            Musings on AI and Robotics
           </p>
         </div>
       </div>
@@ -42,14 +42,15 @@ export default async function BlogPage() {
           {posts.map((post: any, index: any) => (
             <article
               key={post.title}
-              className="group relative flex flex-col space-y-2"
+              className="group relative flex flex-col "
             >
-              <Link className="cursor-pointer" href={"/blog/" + post.fileName}>
-                <span className="text-2xl font-extrabold" >{post.title}</span>
+              <Link className="cursor-pointer space-y-2" href={"/blog/" + post.fileName}>
+                <span className="text-3xl font-extrabold" >{post.title}</span>
 
                 {post.description && (
-                  <p className="text-muted-foreground">{post.description}</p>
+                  <p className="text-muted-foreground text-lg">{post.description}</p>
                 )}
+
                 {post.date && (
                   <p className="text-sm text-muted-foreground">
                     {formatDate(post.date)}
