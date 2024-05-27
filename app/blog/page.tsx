@@ -1,31 +1,27 @@
-import Image from "next/image"
-import Link from "next/link"
-import * as matter from 'gray-matter';
-import { formatDate } from "@/lib/utils"
-import { compareDesc } from "date-fns"
+import Link from "next/link";
+import * as matter from "gray-matter";
+import { formatDate } from "@/lib/utils";
+import { compareDesc } from "date-fns";
 
-export const metadata = {
-  title: "Blog",
-}
 
 export default async function BlogPage() {
-
-  const fs = require('fs');
-  const path = require('path');
-  const contentDirectory = path.join(process.cwd(), 'app/content');
+  const fs = require("fs");
+  const path = require("path");
+  const contentDirectory = path.join(process.cwd(), "app/content");
   const filenames = fs.readdirSync(contentDirectory);
 
-  const posts = filenames.map((filename: string) => {
-    const filePath = path.join(contentDirectory, filename);
-    const { data, content } = matter.read(filePath);
-    return { ...data, content, fileName: filename };
-  }).filter((post: { published: boolean }) => {
-    return post.published;
-  })
-  .sort((a: { date: string }, b: { date: string }) => {
-    return compareDesc(new Date(a.date), new Date(b.date))
-  })
-
+  const posts = filenames
+    .map((filename: string) => {
+      const filePath = path.join(contentDirectory, filename);
+      const { data, content } = matter.read(filePath);
+      return { ...data, content, fileName: filename };
+    })
+    .filter((post: { published: boolean }) => {
+      return post.published;
+    })
+    .sort((a: { date: string }, b: { date: string }) => {
+      return compareDesc(new Date(a.date), new Date(b.date));
+    });
 
   return (
     <div className="container max-w-4xl py-6 lg:py-10">
@@ -48,19 +44,18 @@ export default async function BlogPage() {
               key={post.title}
               className="group relative flex flex-col space-y-2"
             >
-        
               <Link href={"/blog/" + post.fileName}>
                 <span className="text-2xl font-extrabold">{post.title}</span>
+
+                {post.description && (
+                  <p className="text-muted-foreground">{post.description}</p>
+                )}
+                {post.date && (
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(post.date)}
+                  </p>
+                )}
               </Link>
-              
-              {post.description && (
-                <p className="text-muted-foreground">{post.description}</p>
-              )}
-              {post.date && (
-                <p className="text-sm text-muted-foreground">
-                  {formatDate(post.date)}
-                </p>
-              )}
             </article>
           ))}
         </div>
@@ -68,5 +63,5 @@ export default async function BlogPage() {
         <p>No posts published.</p>
       )}
     </div>
-  )
+  );
 }
