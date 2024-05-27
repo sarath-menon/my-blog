@@ -1,5 +1,4 @@
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { promises as fs } from "fs";
 import * as matter from "gray-matter";
 import { compareDesc } from "date-fns";
 import Link from "next/link";
@@ -60,7 +59,6 @@ export default async function BlogPage({
         <ChevronLeft className="mr-2 h-4 w-4" />
         See all posts
       </Link>
-      <div></div>
 
       <div className="space-y-4">
         {post.date && (
@@ -96,9 +94,9 @@ export default async function BlogPage({
         </Link>
       </div>
 
-      <div className="prose dark:prose-invert mt-8 text-base leading-7">
+      <article className="prose dark:prose-invert mt-8 leading-7">
         <MDXRemote source={post.content} />
-      </div>
+      </article>
 
       <hr className="mt-12" />
       <div className="flex justify-center py-6 lg:py-10">
