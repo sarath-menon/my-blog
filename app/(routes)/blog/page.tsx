@@ -44,8 +44,8 @@ export default async function BlogPage() {
               key={post.title}
               className="group relative flex flex-col space-y-2"
             >
-              <Link href={"/blog/" + post.fileName}>
-                <span className="text-2xl font-extrabold">{post.title}</span>
+              <Link className="cursor-pointer" href={"/blog/" + post.fileName}>
+                <span className="text-2xl font-extrabold" >{post.title}</span>
 
                 {post.description && (
                   <p className="text-muted-foreground">{post.description}</p>
