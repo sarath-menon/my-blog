@@ -33,11 +33,21 @@ export async function generateStaticParams() {
   }))
 }
 
+const author = {
+  title: "Sarath Suresh",
+  avatar: "https://pbs.twimg.com/profile_images/1795021923484585984/U0Y9blsk_400x400.jpg",
+  twitter: "https://twitter.com/sarath_Men0n"
+};
+
+
 export default async function BlogPage({ params }: { params: { slug: string } }) {
 
   const filePath = process.cwd() + '/app/content/' + params.slug;
   const { data, content }  = matter.read(filePath);
   const post = { ...data, content };
+
+  
+  
 
   return (
 
@@ -53,11 +63,6 @@ export default async function BlogPage({ params }: { params: { slug: string } })
         See all posts
       </Link>
       <div></div>
-  
-
-    {/* <div className="prose dark:prose-invert">
-    <MDXRemote source={mdxSource.content} />
-    </div> */}
 
     <div>
         {post.date && (
@@ -72,10 +77,7 @@ export default async function BlogPage({ params }: { params: { slug: string } })
           {post.title}
         </h1>
 
-        {post.authors?.length ? (
-          <div className="mt-4 flex space-x-4">
-            {post.authors.map((author) =>
-              author ? (
+        
                 <Link
                   key={author._id}
                   href={`https://twitter.com/${author.twitter}`}
@@ -95,11 +97,6 @@ export default async function BlogPage({ params }: { params: { slug: string } })
                     </p>
                   </div>
                 </Link>
-              ) : null
-            )}
-          </div>
-        ) : null}
-
       </div>
       {/* {post.image && (
         <Image
@@ -112,6 +109,7 @@ export default async function BlogPage({ params }: { params: { slug: string } })
         />
       )}
        */}
+
       <div className="prose dark:prose-invert">
     <MDXRemote source={post.content} />
     </div>
