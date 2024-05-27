@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn, formatDate } from "@/lib/utils";
 import Image from "next/image";
+import { Callout } from "@/components/callout";
 
 export async function generateStaticParams() {
   const fs = require("fs");
@@ -95,7 +96,7 @@ export default async function BlogPage({
       </div>
 
       <article className="prose dark:prose-invert mt-8 leading-7">
-        <MDXRemote source={post.content} />
+        <MDXRemote source={post.content} components={{ Image, Callout }} />
       </article>
 
       <hr className="mt-12" />
