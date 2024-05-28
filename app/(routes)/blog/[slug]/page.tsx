@@ -7,6 +7,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn, formatDate } from "@/lib/utils";
 import Image from "next/image";
 import { Callout } from "@/components/callout";
+import "@/styles/mdx.css"
+import { DashboardTableOfContents } from "@/components/toc";
+import { getTableOfContents } from "@/lib/toc";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export async function generateStaticParams() {
   const fs = require("fs");
@@ -48,9 +52,13 @@ export default async function BlogPage({
   const { data, content } = matter.read(filePath);
   const post = { ...data, content };
 
+  const toc = await getTableOfContents(post.content)
+
+  console.log("toctoc", toc)
+
   return (
-    <div className="container relative max-w-3xl py-6 lg:py-10">
-      <Link
+    <div className="container grid py-6 xl:grid-cols-[1fr_200px] ">
+      {/* <Link
         href="/blog"
         className={cn(
           buttonVariants({ variant: "ghost" }),
@@ -59,9 +67,9 @@ export default async function BlogPage({
       >
         <ChevronLeft className="mr-2 h-4 w-4" />
         See all posts
-      </Link>
+      </Link> */}
 
-      <div className="space-y-4">
+      <div className="grid place-content-center space-y-4 ">
         {post.date && (
           <time
             dateTime={post.date}
@@ -93,10 +101,10 @@ export default async function BlogPage({
             </p>
           </div>
         </Link>
-      </div>
+    
 
-      <article className="prose dark:prose-invert mt-8 leading-7">
-        <MDXRemote source={post.content} components={{ Image, Callout }} />
+      <article className="prose dark:prose-invert mt-8 leading-7 max-w-2xl prose-pre:border prose-pre:bg-neutral-900">
+        <MDXRemote source={post.content} components={{ Image}} />
       </article>
 
       <hr className="mt-12" />
@@ -106,6 +114,18 @@ export default async function BlogPage({
           See all posts
         </Link>
       </div>
+      </div>
+
+
+      <div className="hidden text-sm xl:block ">
+          <div className="sticky top-16  pt-4">
+            <ScrollArea className="pb-10">
+              <div className="sticky top-16 h-[calc(100vh-3.5rem)] py-12">
+                <DashboardTableOfContents toc={toc} />
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
     </div>
   );
 }

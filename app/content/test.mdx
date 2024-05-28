@@ -6,18 +6,64 @@ date: "2024-01-06"
 published: true
 ---
 
-<Callout>
-  The text below is from the [Tailwind
-  CSS](https://play.tailwindcss.com/uj1vGACRJA?layout=preview) docs. I copied it
-  here to test the markdown styles. **Tailwind is awesome. You should use it.**
-</Callout>
+> Dorothy followed her through many of the beautiful rooms in her castle.
 
+nanoGPT is an autoregressive model: Predicts the next token given the past token history  
+Diffusion models are the go to models for generating images, video, music, 3D models and more.
 
-Until now, trying to style an article, document, or blog post with Tailwind has been a tedious task that required a keen eye for typography and a lot of complex custom CSS.
+Looking at the landmark paper "Scalable Diffusion Models with Transformers" that introduced Diffusion Transformers (DiTs). All prior works diffusion models for image generation like Stable Diffusion etc use a convolutional neural network (CNN) to predict noise. DiTs replace the CNN with a transformer, leading to much better scalability and performance.
+Diffusion transformers power the most modern generators including Sora and Stable diffusion 3.
 
-By default, Tailwind removes all of the default browser styling from paragraphs, headings, lists and more. This ends up being really useful for building application UIs because you spend less time undoing user-agent styles, but when you _really are_ just trying to style some content that came from a rich-text editor in a CMS or a markdown file, it can be surprising and unintuitive.
+We'l be able to load the weights.
 
-We get lots of complaints about it actually, with people regularly asking us things like:
+Could have put everything in a single file. Diffusion based generators have modular subsystems: encoder, noise remover, scheduler, decoder
+
+- Encoder: Class label embedding, CLIP etc
+- Decoder: Stable diffusion 1.5
+- Scheduler: Linear
+- Noise remover: Vision transformer (modified from nanoGPT)
+
+# Tranformer
+
+Very close to Andrej Karpathy's nanoGPT implementation, with a few notable differences
+
+## Patchification
+
+NanoGPT uses a character level vocabulary: each character is considered as a separate token. But how do we feed images into the transformer ?. One option is to consider each pixel as a token. But doesn't scale (DallE?). Instead, we dive each image into 16x16 patches. Each patch is converted to a 32x32x4 latent vector and reshaped to for a sequence {}. Easy to code up using a convolutional layer because does both operations: setting stride and kernel size to 16 ensures the kernel acts on adjacent patched of size 16x16. The convolution operation operations acts as a linear embedding, since it's a dot product of the kernel with the image patch.
+
+### Acausal attention instead of Casual
+
+nanoGPT is supposed to predict the next token at each timestep. It's not allowed to look at the future tokens in the sequence during training. This is achieved by setting the corresponding attention weights to zero. But our transformer needs to look at the entire image at each timestep to predict the noise to be removed. So, we don't need the mask.
+
+### 2D positional embedding
+
+learned positional embedding. The paper use a fixed 2D sincos embedding.
+Rotary embeddings better choice now
+
+### AdaLN normalization, Timestep and label embeddings
+
+We need to tell the transformer what class label of the image we want to generate. Also, it need to needs to know the current timestep of the diffusion process. One option is to append it as additional tokens in the input sequence (in-context conditioning) or add another attention layer to feed it (cross-attention). But the authors choose another options that's more compute efficient and also performs well in practice. They sum the vectors and feed it as input to a normalizer block that outputs 3 values: alpha, beta and gamma. beta and gamma scales and shifts the output after layer normalization. Alpha scales the output after attention.
+
+- nanoGPT: x -> layer norm -> attention/mlp
+- DiT -> x -> layer norm -> modulate(shift,scale) -> attention/mlp -> gate(scale)
+
+## Encoder
+
+Tell the generator what we want using class labels
+
+## Decoder
+
+To convert the generated image latent to an RGB image
+
+# Diffusion
+
+Training works as follows. First, noise is added to the image gradually. Then, a neural network learns to remove the noise step by step.
+
+## Intuition: why not generate images using nanogpt
+
+For autoregresive: Paint each section of the canvas one by one. But that's not how an artist draws on a blank canvas.First fills rough outlines, then more fine grained details. Diffusion models do the same. Au
+
+## Classifier free guidance
 
 
 <Image
@@ -37,5 +83,5 @@ module.exports = {
   },
   variants: {},
   plugins: [],
-}
+};
 ```
