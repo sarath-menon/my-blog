@@ -111,7 +111,7 @@ export default async function BlogPage({
             </div>
           </Link>
 
-          <article className="prose dark:prose-invert mt-8 leading-7 max-w-2xl prose-pre:border prose-pre:bg-neutral-900">
+          <article className="prose dark:prose-invert mt-8 leading-7 max-w-4xl prose-pre:border prose-pre:bg-neutral-900 text-pretty">
             
             <MDXRemote source={post.content} components={{ Image, Latex }} />
           </article>
