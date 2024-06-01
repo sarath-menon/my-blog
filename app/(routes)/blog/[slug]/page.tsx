@@ -7,10 +7,13 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn, formatDate } from "@/lib/utils";
 import Image from "next/image";
 import { Callout } from "@/components/callout";
-import "@/styles/mdx.css"
+import "@/styles/mdx.css";
 import { DashboardTableOfContents } from "@/components/toc";
 import { getTableOfContents } from "@/lib/toc";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Head from "next/head";
+import 'katex/dist/katex.min.css';
+import Latex from 'react-latex-next';
 
 export async function generateStaticParams() {
   const fs = require("fs");
@@ -52,13 +55,14 @@ export default async function BlogPage({
   const { data, content } = matter.read(filePath);
   const post = { ...data, content };
 
-  const toc = await getTableOfContents(post.content)
+  const toc = await getTableOfContents(post.content);
 
-  console.log("toctoc", toc)
+  console.log("toctoc", toc);
 
   return (
-    <div className="container grid py-6 xl:grid-cols-[1fr_200px] ">
-      {/* <Link
+    <>
+      <div className="container grid py-6 xl:grid-cols-[1fr_200px] ">
+        {/* <Link
         href="/blog"
         className={cn(
           buttonVariants({ variant: "ghost" }),
@@ -69,55 +73,58 @@ export default async function BlogPage({
         See all posts
       </Link> */}
 
-      <div className="grid place-content-center space-y-4 ">
-        {post.date && (
-          <time
-            dateTime={post.date}
-            className="block text-sm text-muted-foreground"
+        <div className="grid place-content-center space-y-4 ">
+          {post.date && (
+            <time
+              dateTime={post.date}
+              className="block text-sm text-muted-foreground"
+            >
+              Published on {formatDate(post.date)}
+            </time>
+          )}
+          <h1 className="mt-2 inline-block font-semibold text-4xl leading-tight lg:text-5xl">
+            {post.title}
+          </h1>
+
+          <Link
+            key={author._id}
+            href={`https://twitter.com/${author.twitter}`}
+            className="flex items-center space-x-2 text-sm"
           >
-            Published on {formatDate(post.date)}
-          </time>
-        )}
-        <h1 className="mt-2 inline-block font-semibold text-4xl leading-tight lg:text-5xl">
-          {post.title}
-        </h1>
+            <Image
+              src={author.avatar}
+              alt={author.title}
+              width={42}
+              height={42}
+              className="rounded-full bg-white"
+            />
+            <div className="flex-1 text-left leading-tight">
+              <p className="font-medium">{author.title}</p>
+              <p className="text-[12px] text-muted-foreground">
+                @{author.twitter}
+              </p>
+            </div>
+          </Link>
 
-        <Link
-          key={author._id}
-          href={`https://twitter.com/${author.twitter}`}
-          className="flex items-center space-x-2 text-sm"
-        >
-          <Image
-            src={author.avatar}
-            alt={author.title}
-            width={42}
-            height={42}
-            className="rounded-full bg-white"
-          />
-          <div className="flex-1 text-left leading-tight">
-            <p className="font-medium">{author.title}</p>
-            <p className="text-[12px] text-muted-foreground">
-              @{author.twitter}
-            </p>
+          <article className="prose dark:prose-invert mt-8 leading-7 max-w-2xl prose-pre:border prose-pre:bg-neutral-900">
+            
+            <MDXRemote source={post.content} components={{ Image, Latex }} />
+          </article>
+
+          <hr className="mt-12" />
+          <div className="flex justify-center py-6 lg:py-10">
+            <Link
+              href="/blog"
+              className={cn(buttonVariants({ variant: "ghost" }))}
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              See all posts
+            </Link>
           </div>
-        </Link>
-    
+        </div>
+        
 
-      <article className="prose dark:prose-invert mt-8 leading-7 max-w-2xl prose-pre:border prose-pre:bg-neutral-900">
-        <MDXRemote source={post.content} components={{ Image}} />
-      </article>
-
-      <hr className="mt-12" />
-      <div className="flex justify-center py-6 lg:py-10">
-        <Link href="/blog" className={cn(buttonVariants({ variant: "ghost" }))}>
-          <ChevronLeft className="mr-2 h-4 w-4" />
-          See all posts
-        </Link>
-      </div>
-      </div>
-
-
-      <div className="hidden text-sm xl:block ">
+        <div className="hidden text-sm xl:block ">
           <div className="sticky top-16  pt-4">
             <ScrollArea className="pb-10">
               <div className="sticky top-16 h-[calc(100vh-3.5rem)] py-12">
@@ -126,6 +133,7 @@ export default async function BlogPage({
             </ScrollArea>
           </div>
         </div>
-    </div>
+      </div>
+    </>
   );
 }
