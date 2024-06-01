@@ -6,12 +6,10 @@ import { ChevronLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn, formatDate } from "@/lib/utils";
 import Image from "next/image";
-import { Callout } from "@/components/callout";
 import "@/styles/mdx.css";
 import { DashboardTableOfContents } from "@/components/toc";
 import { getTableOfContents } from "@/lib/toc";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import Head from "next/head";
 import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
@@ -67,17 +65,6 @@ export default async function BlogPage({
   return (
     <>
       <div className="container grid py-6 xl:grid-cols-[1fr_200px] ">
-        {/* <Link
-        href="/blog"
-        className={cn(
-          buttonVariants({ variant: "ghost" }),
-          "absolute left-[-200px] top-14 hidden xl:inline-flex"
-        )}
-      >
-        <ChevronLeft className="mr-2 h-4 w-4" />
-        See all posts
-      </Link> */}
-
         <div className="grid place-content-center space-y-4 ">
           {post.date && (
             <time
