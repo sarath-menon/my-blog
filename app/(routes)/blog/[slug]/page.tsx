@@ -52,12 +52,17 @@ export default async function BlogPage({
   params: { slug: string };
 }) {
   const filePath = process.cwd() + "/app/content/" + params.slug;
-  const { data, content } = matter.read(filePath);
+  let { data, content } = matter.read(filePath);
+
+  // to wrap latet sections with <Latex> tag
+  const regex = /(\$\$(.*?)\$\$|\$(.*?)\$)/gm;
+  content = content.replace(regex, (match) => {
+  const cleanedMatch = match.replace(/^\$\$?/g, "").replace(/\$\$?$/g, "");
+  return `<Latex>$${cleanedMatch}$</Latex>`;
+});
+  
   const post = { ...data, content };
-
   const toc = await getTableOfContents(post.content);
-
-  console.log("toctoc", toc);
 
   return (
     <>

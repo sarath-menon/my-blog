@@ -186,4 +186,6 @@ class GaussianDiffusion:
 		return th.linspace(beta_start, beta_end, diffusion_timesteps)
 ```
 
-A mathematical trick gives us the following closed form equation to directly get the noisy image at any timestep. This is much more efficient than adding noise step by step. Let define  <Latex>$\alpha_t = 1 - \beta_t$</Latex>
+A mathematical trick gives us the following closed form equation to directly get the noisy image at any timestep. This is much more efficient than adding noise step by step. Let define $\alpha_t = 1 - \beta_t$
+
+$$\alpha_t = 1 - \beta_t$$
