@@ -22,13 +22,11 @@ class AcausalSelfAttention(nn.Module):
 	def __init__(self, cfg):
 		super(DiT, self).__init__()
 		...
-	
 		def forward(self, x):
 			...
 			weights = q @ k.transpose(-2,-1) * (1.0 / math.sqrt(k.size(-1))) # (B,T,hs) @ (B,hs,T) ---> (B,T,T)
 			
 			# nanoGPT applies masking before computing softmax to set the attention weights to zero. We don'f need to do that
-			
 			weights = F.softmax(weights, dim=-1)
 
 class DiT(nn.Module):
@@ -41,7 +39,7 @@ class DiT(nn.Module):
 	def forward(self, x, t, y, targets=None):
 		for block in self.blocks:
 			x = block(x, c)
-				
+
 		x = self.lm_head(x)
 ```
 

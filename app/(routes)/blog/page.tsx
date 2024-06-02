@@ -7,7 +7,7 @@ import { compareDesc } from "date-fns";
 export default async function BlogPage() {
   const fs = require("fs");
   const path = require("path");
-  const contentDirectory = path.join(process.cwd(), "app/content");
+  const contentDirectory = path.join(process.cwd(), "app/content/blog/");
   const filenames = fs.readdirSync(contentDirectory);
 
   const posts = filenames
@@ -44,7 +44,7 @@ export default async function BlogPage() {
               key={post.title}
               className="group relative flex flex-col "
             >
-              <Link className="cursor-pointer space-y-2" href={"/blog/" + post.fileName}>
+              <Link className="cursor-pointer space-y-2" href={"/content/blog/" + post.fileName}>
                 <span className="text-3xl font-extrabold" >{post.title}</span>
 
                 {post.description && (

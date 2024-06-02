@@ -16,7 +16,7 @@ import Latex from 'react-latex-next';
 export async function generateStaticParams() {
   const fs = require("fs");
   const path = require("path");
-  const contentDirectory = path.join(process.cwd(), "app/content");
+  const contentDirectory = path.join(process.cwd(), "app/content/blog/");
   const filenames = fs.readdirSync(contentDirectory);
 
   const posts = filenames
@@ -49,7 +49,7 @@ export default async function BlogPage({
 }: {
   params: { slug: string };
 }) {
-  const filePath = process.cwd() + "/app/content/" + params.slug;
+  const filePath = process.cwd() + "/app/content/blog/" + params.slug;
   let { data, content } = matter.read(filePath);
 
   // to wrap latet sections with <Latex> tag
