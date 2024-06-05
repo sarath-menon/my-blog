@@ -10,13 +10,13 @@ import "@/styles/mdx.css";
 import { DashboardTableOfContents } from "@/components/toc";
 import { getTableOfContents } from "@/lib/toc";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import 'katex/dist/katex.min.css';
-import Latex from 'react-latex-next';
+import "katex/dist/katex.min.css";
+import Latex from "react-latex-next";
 
 export async function generateStaticParams() {
   const fs = require("fs");
   const path = require("path");
-  const contentDirectory = path.join(process.cwd(), "app/content/blog/");
+  const contentDirectory = path.join(process.cwd(), "/content/blog/");
   const filenames = fs.readdirSync(contentDirectory);
 
   const posts = filenames
@@ -49,16 +49,18 @@ export default async function BlogPage({
 }: {
   params: { slug: string };
 }) {
-  const filePath = process.cwd() + "/app/content/blog/" + params.slug;
+  console.log("Slug:", params.slug);
+
+  const filePath = process.cwd() + "/content/blog/" + params.slug;
   let { data, content } = matter.read(filePath);
 
   // to wrap latet sections with <Latex> tag
   const regex = /(\$\$(.*?)\$\$|\$(.*?)\$)/gm;
   content = content.replace(regex, (match) => {
-  const cleanedMatch = match.replace(/^\$\$?/g, "").replace(/\$\$?$/g, "");
-  return `<Latex>$${cleanedMatch}$</Latex>`;
-});
-  
+    const cleanedMatch = match.replace(/^\$\$?/g, "").replace(/\$\$?$/g, "");
+    return `<Latex>$${cleanedMatch}$</Latex>`;
+  });
+
   const post = { ...data, content };
   const toc = await getTableOfContents(post.content);
 
@@ -99,7 +101,6 @@ export default async function BlogPage({
           </Link>
 
           <article className="prose dark:prose-invert mt-8 leading-7 max-w-4xl prose-pre:border prose-pre:bg-neutral-900 text-pretty">
-            
             <MDXRemote source={post.content} components={{ Image, Latex }} />
           </article>
 
@@ -114,7 +115,6 @@ export default async function BlogPage({
             </Link>
           </div>
         </div>
-        
 
         <div className="hidden text-sm xl:block ">
           <div className="sticky top-16  pt-4">

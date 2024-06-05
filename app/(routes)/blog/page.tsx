@@ -3,11 +3,10 @@ import * as matter from "gray-matter";
 import { formatDate } from "@/lib/utils";
 import { compareDesc } from "date-fns";
 
-
 export default async function BlogPage() {
   const fs = require("fs");
   const path = require("path");
-  const contentDirectory = path.join(process.cwd(), "app/content/blog/");
+  const contentDirectory = path.join(process.cwd(), "content/blog/");
   const filenames = fs.readdirSync(contentDirectory);
 
   const posts = filenames
@@ -40,15 +39,17 @@ export default async function BlogPage() {
       {posts?.length ? (
         <div className="grid gap-10 sm:grid-cols-2">
           {posts.map((post: any, index: any) => (
-            <article
-              key={post.title}
-              className="group relative flex flex-col "
-            >
-              <Link className="cursor-pointer space-y-2" href={"/content/blog/" + post.fileName}>
-                <span className="text-3xl font-extrabold" >{post.title}</span>
+            <article key={post.title} className="group relative flex flex-col ">
+              <Link
+                className="cursor-pointer space-y-2"
+                href={"/blog/" + post.fileName}
+              >
+                <span className="text-3xl font-extrabold">{post.title}</span>
 
                 {post.description && (
-                  <p className="text-muted-foreground text-lg">{post.description}</p>
+                  <p className="text-muted-foreground text-lg">
+                    {post.description}
+                  </p>
                 )}
 
                 {post.date && (
