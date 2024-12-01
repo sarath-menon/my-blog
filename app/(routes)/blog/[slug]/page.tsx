@@ -44,11 +44,12 @@ const author = {
   twitter: "https://twitter.com/sarath_Men0n",
 };
 
-export default async function BlogPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function BlogPage(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   console.log("Slug:", params.slug);
 
   const filePath = process.cwd() + "/content/blog/" + params.slug;

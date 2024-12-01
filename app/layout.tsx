@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google"
-import { cn } from "@/lib/utils"
+import { Inter as FontSans } from "next/font/google";
+import { cn } from "@/lib/utils";
 
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
-})
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
@@ -29,14 +29,14 @@ export default function RootLayout({
         )}
       >
         <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-        {children}
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
         </ThemeProvider>
-        </body>
+      </body>
     </html>
   );
 }
