@@ -2,6 +2,7 @@ import { MainNav } from "@/components/main-nav";
 import { ModeToggle } from "@/components/mode-toggle";
 import { marketingConfig } from "@/config/marketing";
 
+import React from "react";
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 bg-background">
