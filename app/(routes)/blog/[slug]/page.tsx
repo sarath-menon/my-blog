@@ -8,10 +8,13 @@ import { cn, formatDate } from "@/lib/utils";
 import Image from "next/image";
 import "@/styles/mdx.css";
 import { DashboardTableOfContents } from "@/components/toc";
-import { getTableOfContents } from "@/lib/toc";
+import { Items, getTableOfContents } from "@/lib/toc";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
+import { slug as slugify } from "github-slugger";
+import { contentHeading } from "@/components/content-heading";
+import { Post, Author } from "@/types/blog-post";
 
 export async function generateStaticParams() {
   const fs = require("fs");
@@ -32,25 +35,33 @@ export async function generateStaticParams() {
       return compareDesc(new Date(a.date), new Date(b.date));
     });
 
-  return posts.map((post) => ({
+  return posts.map((post: Post) => ({
     slug: post.fileName,
   }));
 }
 
-const author = {
+const author: Author = {
   title: "Sarath Suresh",
   avatar:
     "https://pbs.twimg.com/profile_images/1795021923484585984/U0Y9blsk_400x400.jpg",
   twitter: "https://twitter.com/sarath_Men0n",
 };
 
-export default async function BlogPage(
-  props: {
-    params: Promise<{ slug: string }>;
-  }
-) {
+const components = {
+  h1: contentHeading(1),
+  h2: contentHeading(2),
+  h3: contentHeading(3),
+  h4: contentHeading(4),
+  h5: contentHeading(5),
+  h6: contentHeading(6),
+  Image,
+  Latex,
+};
+
+export default async function BlogPage(props: {
+  params: Promise<{ slug: string }>;
+}) {
   const params = await props.params;
-  console.log("Slug:", params.slug);
 
   const filePath = process.cwd() + "/content/blog/" + params.slug;
   let { data, content } = matter.read(filePath);
@@ -62,47 +73,21 @@ export default async function BlogPage(
     return `<Latex>$${cleanedMatch}$</Latex>`;
   });
 
-  const post = { ...data, content };
+  const post = { ...data, content } as Post;
   const toc = await getTableOfContents(post.content);
 
   return (
     <>
       <div className="container grid py-6 xl:grid-cols-[1fr_200px] ">
         <div className="grid place-content-center space-y-4 ">
-          {post.date && (
-            <time
-              dateTime={post.date}
-              className="block text-sm text-muted-foreground"
-            >
-              Published on {formatDate(post.date)}
-            </time>
-          )}
-          <h1 className="mt-2 inline-block font-semibold text-4xl leading-tight lg:text-5xl">
-            {post.title}
-          </h1>
+          {post.date && <PostDate date={post.date} />}
 
-          <Link
-            key={author._id}
-            href={`https://twitter.com/${author.twitter}`}
-            className="flex items-center space-x-2 text-sm"
-          >
-            <Image
-              src={author.avatar}
-              alt={author.title}
-              width={42}
-              height={42}
-              className="rounded-full bg-white"
-            />
-            <div className="flex-1 text-left leading-tight">
-              <p className="font-medium">{author.title}</p>
-              <p className="text-[12px] text-muted-foreground">
-                @{author.twitter}
-              </p>
-            </div>
-          </Link>
+          {post.title && <PostTitle title={post.title} />}
 
-          <article className="prose dark:prose-invert mt-8 leading-7 max-w-4xl prose-pre:border prose-pre:bg-neutral-900 text-pretty">
-            <MDXRemote source={post.content} components={{ Image, Latex }} />
+          <AuthorLink author={author} />
+
+          <article className="prose dark:prose-invert pt-8 leading-7  max-w-4xl prose-pre:border prose-pre:bg-neutral-900 text-pretty">
+            <MDXRemote source={post.content} components={components} />
           </article>
 
           <hr className="mt-12" />
@@ -117,16 +102,61 @@ export default async function BlogPage(
           </div>
         </div>
 
-        <div className="hidden text-sm xl:block ">
-          <div className="sticky top-16  pt-4">
-            <ScrollArea className="pb-10">
-              <div className="sticky top-16 h-[calc(100vh-3.5rem)] py-12">
-                <DashboardTableOfContents toc={toc} />
-              </div>
-            </ScrollArea>
-          </div>
-        </div>
+        <TableOfContents toc={toc} />
       </div>
     </>
+  );
+}
+
+function TableOfContents({ toc }: { toc: Items }) {
+  return (
+    <div className="hidden text-sm xl:block ">
+      <div className="sticky top-16  pt-4">
+        <ScrollArea className="pb-10">
+          <div className="sticky top-16 h-[calc(100vh-3.5rem)] py-12">
+            <div className="no-scrollbar h-full overflow-auto pb-10">
+              <DashboardTableOfContents toc={toc} />
+            </div>
+          </div>
+        </ScrollArea>
+      </div>
+    </div>
+  );
+}
+
+function AuthorLink({ author }: { author: Author }) {
+  return (
+    <Link
+      href={`https://twitter.com/${author.twitter}`}
+      className="flex items-center space-x-2 text-sm"
+    >
+      <Image
+        src={author.avatar}
+        alt={author.title}
+        width={42}
+        height={42}
+        className="rounded-full bg-white"
+      />
+      <div className="flex-1 text-left leading-tight">
+        <p className="font-medium">{author.title}</p>
+        <p className="text-[12px] text-muted-foreground">@{author.twitter}</p>
+      </div>
+    </Link>
+  );
+}
+
+function PostDate({ date }: { date: string }) {
+  return (
+    <time dateTime={date} className="block text-sm text-muted-foreground">
+      Published on {formatDate(date)}
+    </time>
+  );
+}
+
+function PostTitle({ title }: { title: string }) {
+  return (
+    <h1 className="mt-2 inline-block font-semibold text-4xl leading-tight lg:text-5xl">
+      {title}
+    </h1>
   );
 }

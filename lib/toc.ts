@@ -22,7 +22,7 @@ interface Item {
   items?: Item[]
 }
 
-interface Items {
+export interface Items {
   items?: Item[]
 }
 
