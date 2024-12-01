@@ -1,4 +1,5 @@
 import { slug as slugify } from "github-slugger";
+import { JSX } from "react";
 
 export function contentHeading(level: number) {
   return function Heading({ children }: { children: React.ReactNode }) {

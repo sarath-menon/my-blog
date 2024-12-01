@@ -84,9 +84,9 @@ export default async function BlogPage(props: {
 
           {post.title && <PostTitle title={post.title} />}
 
-          <AuthorLink author={author} />
+          <AuthorLink author={author} className="py-4" />
 
-          <article className="prose dark:prose-invert pt-8 leading-7  max-w-4xl prose-pre:border prose-pre:bg-neutral-900 text-pretty">
+          <article className="prose dark:prose-invert leading-7  max-w-4xl prose-pre:border prose-pre:bg-neutral-900 text-pretty">
             <MDXRemote source={post.content} components={components} />
           </article>
 
@@ -113,8 +113,8 @@ function TableOfContents({ toc }: { toc: Items }) {
     <div className="hidden text-sm xl:block ">
       <div className="sticky top-16  pt-4">
         <ScrollArea className="pb-10">
-          <div className="sticky top-16 h-[calc(100vh-3.5rem)] py-12">
-            <div className="no-scrollbar h-full overflow-auto pb-10">
+          <div className="sticky top-16 h-[calc(100vh-3.5rem)] py-4">
+            <div className="no-scrollbar h-full overflow-auto pb-6">
               <DashboardTableOfContents toc={toc} />
             </div>
           </div>
@@ -124,24 +124,29 @@ function TableOfContents({ toc }: { toc: Items }) {
   );
 }
 
-function AuthorLink({ author }: { author: Author }) {
+function AuthorLink({
+  author,
+  className,
+}: {
+  author: Author;
+  className: string;
+}) {
   return (
-    <Link
-      href={`https://twitter.com/${author.twitter}`}
-      className="flex items-center space-x-2 text-sm"
-    >
-      <Image
-        src={author.avatar}
-        alt={author.title}
-        width={42}
-        height={42}
-        className="rounded-full bg-white"
-      />
-      <div className="flex-1 text-left leading-tight">
-        <p className="font-medium">{author.title}</p>
-        <p className="text-[12px] text-muted-foreground">@{author.twitter}</p>
-      </div>
-    </Link>
+    <div className={cn("flex items-center space-x-2 text-sm", className)}>
+      <Link href={`https://twitter.com/${author.twitter}`}>
+        <Image
+          src={author.avatar}
+          alt={author.title}
+          width={42}
+          height={42}
+          className="rounded-full bg-white"
+        />
+        <div className="flex-1 text-left leading-tight">
+          <p className="font-medium">{author.title}</p>
+          <p className="text-[12px] text-muted-foreground">@{author.twitter}</p>
+        </div>
+      </Link>
+    </div>
   );
 }
 

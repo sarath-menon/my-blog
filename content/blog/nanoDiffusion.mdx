@@ -8,13 +8,16 @@ published: true
 
 nanoGPT is great is a great amazing starting point for building language models. I searched for a similar introduction for diffusion transformers but couldn't find any. So, I made one. Diffusion transformers power state of the art image/video including Sora and Stable diffusion 3. The combine two powerful techniques: Diffusion models and transformers. Diffusion models start with pure noise and convert it into an image by gradually removing the noise over a series of timesteps. The first cool models like stable diffusion 1.5 and OpenAI glide used a convolutional neural network (CNN) to remove the noise. Then, a the landmark paper "Scalable Diffusion Models with Transformers" showed that transformers work much better than CNN's for noise removal and have good scaling properties. Also, this enables a more standardized architecture that benefits from all the research activity around transformers.
 
-This means that we can build an image generator with a few modifications to nanoGPT.  We'll first look at the bare minimum changes needed to get a system that can generate resonable images. Then, we make the changes to improve image quality. Each step is spelled out in code.
+This means that we can build an image generator with a few modifications to nanoGPT. We'll first look at the bare minimum changes needed to get a system that can generate resonable images. Then, we make the changes to improve image quality. Each step is spelled out in code.
 
 ## Iterative refinement vs sequence completion
+
 Given the starting token in a sequence, nanoGPT predicts the next token.The is sequence of two tokens acts as the input to predict the third token in the sequence and so on. So, it generates a part of the entire output at each timestep. Over time, we get the full output. Such models are called autoregressive models. But diffusion models work differently. Suppose we need generate an image of 512px height and 512px width. The input is an image the size but it's complete noise. At the next timestep, the transformer predicts a small amount of noise that can be removed from each pixel, so that that the output looks a bit more like the image we want to generate. This process is repeated over many timesteps to get the final image.
 
-Let's highlight the differences. Autoregressive models get only one shot at generating the next toke, which means that it need to get it right the first time. This already gives an indication of why autoregressive models don't work well for image generation. Think of an artist who's forced to start from the top corner of a canvas and finish the painting by drawing a small portion at time till he reach the end of the canvas. Of course, real artists don't work this way. They start with a rough outline of the final painting, and add details over time. Diffusion models do the same thing. Instead the trying getting a small part of the image perfectly right, it improve the entire image by a small amount at each timestep. 
-# Trasnformer
+Let's highlight the differences. Autoregressive models get only one shot at generating the next toke, which means that it need to get it right the first time. This already gives an indication of why autoregressive models don't work well for image generation. Think of an artist who's forced to start from the top corner of a canvas and finish the painting by drawing a small portion at time till he reach the end of the canvas. Of course, real artists don't work this way. They start with a rough outline of the final painting, and add details over time. Diffusion models do the same thing. Instead the trying getting a small part of the image perfectly right, it improve the entire image by a small amount at each timestep.
+
+# Transformer
+
 ## Acausal attention instead of causal attention
 
 ```
@@ -25,7 +28,7 @@ class AcausalSelfAttention(nn.Module):
 		def forward(self, x):
 			...
 			weights = q @ k.transpose(-2,-1) * (1.0 / math.sqrt(k.size(-1))) # (B,T,hs) @ (B,hs,T) ---> (B,T,T)
-			
+
 			# nanoGPT applies masking before computing softmax to set the attention weights to zero. We don'f need to do that
 			weights = F.softmax(weights, dim=-1)
 
@@ -35,7 +38,7 @@ class DiT(nn.Module):
 		*[Block(cfg) for _ in range(cfg.n_layers)]
 		])
 	...
-	
+
 	def forward(self, x, t, y, targets=None):
 		for block in self.blocks:
 			x = block(x, c)
@@ -43,20 +46,21 @@ class DiT(nn.Module):
 		x = self.lm_head(x)
 ```
 
-## Patchification 
+## Patchification
+
 NanoGPT uses a character level vocabulary: each character is considered as a separate token. But how do we feed images into the transformer ?. We dive each image into 16x16 patches. Each patch is converted to a 32x32x4 latent vector and reshaped to for a sequence {}. Easy to code up using a convolutional layer because does both operations: setting stride and kernel size to 16 ensures the kernel acts on adjacent patched of size 16x16. The convolution operation operations acts as a linear embedding, since it's a dot product of the kernel with the image patch. Also, we need to undo the patchification after computing the model output to recover the original image dimensions.
 
 ```
 class PatchEmbed(nn.Module):
 	def __init__(self, H, W, patch_size=16, in_chans=3, n_embed=100):
 		super().__init__()
-		
+
 		self.num_patches = (H * W) // (patch_size ** 2)
 		self.patch_size = patch_size
-			
+
 		# conv operation acts as a linear embedding
 		self.proj = nn.Conv2d(in_chans, n_embed, kernel_size=patch_size, stride=patch_size)
-	
+
 	def forward(self, x):
 		x = self.proj(x) #(B, C, H, W) -> (B, n_embed, H, W)
 		x = x.flatten(2) #(B, n_embed, H, W) -> (B, n_embed, H*W)
@@ -77,30 +81,33 @@ class DiT(nn.Module):
 		imgs = x.view(x.shape[0], c, h * p, w * p) # Combine patch dimensions with height and width
 
 		return imgs
-	
+
 	def forward(self, x, t, y, targets=None):
-		x = self.patch_embedder(x) 
+		x = self.patch_embedder(x)
 
 		for block in self.blocks:
 			x = block(x, c)
-				
+
 		x = self.lm_head(x)
 		x = self.patch_embedder.unpatchify(x, self.out_channels)
-	
+
 ```
-##  2D positional embedding
+
+## 2D positional embedding
+
 The transformer has no notion of space or position by default. One option is to design an embedding that uniquely identifies each position. We could also initialize the embeddings randomly and learn it during training. In practice, both approaches give similar results for language models. So, nanoGPT uses learning approach since it's easier to implement. For images, we need position embeddings for both the x and y axes. I tried to use the same learning approach as nanoGPT, but it didn't work. I guess the much harder for the small transformer to learn two dimensional embeddings, compared to the one dimensional embedding for text. Instead, we use fixed sin-cos. Let's build it step by step
+
 ```
 class PatchEmbed(nn.Module):
 	def __init__(self, H, W, patch_size=16, in_chans=3, n_embed=100):
 		super().__init__()
-		
+
 		self.num_patches = (H * W) // (patch_size ** 2)
 		self.patch_size = patch_size
-			
+
 		# conv operation acts as a linear embedding
 		self.proj = nn.Conv2d(in_chans, n_embed, kernel_size=patch_size, stride=patch_size)
-	
+
 	def forward(self, x):
 		x = self.proj(x) #(B, C, H, W) -> (B, n_embed, H, W)
 		x = x.flatten(2) #(B, n_embed, H, W) -> (B, n_embed, H*W)
@@ -111,19 +118,21 @@ class DiT(nn.Module):
 	...
 	self.patch_embedder = PatchEmbed(cfg.input_size, cfg.input_size, cfg.patch_size, cfg.in_chans, cfg.n_embed)
 	...
-	
+
 	def forward(self, x, t, y, targets=None):
 		# add position embedding to patchifier output
 		x = self.patch_embedder(x) +  self.pos_embed
 
 		for block in self.blocks:
 			x = block(x, c)
-				
+
 		x = self.lm_head(x)
 		x = self.patch_embedder.unpatchify(x, self.out_channels)
-	
+
 ```
+
 ## Timestep and label embeddings
+
 Remember that we are using a single model to remove the noise to remove the noise at all timesteps. But the model doesn't know the current timestep by default. Also, we need to include the class label of the current image (eg. 0 for shirts, 1 for trousers etc). We initialize learnable embeddings for the both the input and the class label, and add it to the other embeddings
 
 ```
@@ -133,7 +142,7 @@ class DiT(nn.Module):
 	self.label_embedding_table = nn.Embedding(cfg.num_classes, cfg.n_embed)
 	self.timestep_embedding_table = nn.Embedding(cfg.diffusion_steps,cfg.n_embed)
 	...
-	
+
 	def forward(self, x, t, y, targets=None):
 		# get timestep and label embeddings
 		c = self.timestep_embedding_table(t) + self.label_embedding_table(y)
@@ -141,23 +150,23 @@ class DiT(nn.Module):
 
 		for block in self.blocks:
 			x = block(x, c)
-				
+
 		x = self.lm_head(x)
 		x = self.patch_embedder.unpatchify(x, self.out_channels)
 ```
 
-
 # Training
 
 ## Dataset
-nanoGPT uses the tiny shakespere dataset. Small enough to trainable on your laptop, but still interesting. For image generation, we train on the fashion MNIST dataset. It has 60,000 training images of 28px dimension in 10 fashions such as shirts, trousers etc. It's much smaller than CIFAR-10 but  more interesting the and complicated than MNIST
+
+nanoGPT uses the tiny shakespere dataset. Small enough to trainable on your laptop, but still interesting. For image generation, we train on the fashion MNIST dataset. It has 60,000 training images of 28px dimension in 10 fashions such as shirts, trousers etc. It's much smaller than CIFAR-10 but more interesting the and complicated than MNIST
 
 The do some basic preprocessing before training. First, we flip randomly selected images on the horizontal axis so that the network learns both orientations . Then, we normalize the mean to zero and standard deviation to 1 (why?). See here for more details on preprocessing.
 
 ```
 # preprocessing the dataset
 transform = transforms.Compose([
-transforms.RandomHorizontalFlip(), # random 
+transforms.RandomHorizontalFlip(), # random
 transforms.ToTensor(),
 transforms.Normalize(mean=[0.5], std=[0.5], inplace=True)
 ])
@@ -168,8 +177,10 @@ train_dataset = datasets.FashionMNIST(root='
 # wrapper with convenience function for sampling minibatches
 trainloader = th.utils.data.DataLoader(train_dataset, batch_size=train_cfg.batch_size,shuffle=True)
 ```
+
 ## Forward diffusion
-We add small amounts of gaussian noise to each image in the dataset until the entire image becomes pure noise. The forward diffusion schedule $\beta$  determines the determines the rate at which noise is added to the image. We use is a linear since it's the simplest.
+
+We add small amounts of gaussian noise to each image in the dataset until the entire image becomes pure noise. The forward diffusion schedule $\beta$ determines the determines the rate at which noise is added to the image. We use is a linear since it's the simplest.
 
 ```
 class GaussianDiffusion:
@@ -177,7 +188,7 @@ class GaussianDiffusion:
 		self.diffusion_steps = diffusion_steps
 		self.device = device
 		self.betas = self.linear_beta_schedule(self.diffusion_steps).float().to(self.device)
-	
+
 	def linear_beta_schedule(self, diffusion_timesteps):
 		beta_start = 0.0001
 		beta_end = 0.02
